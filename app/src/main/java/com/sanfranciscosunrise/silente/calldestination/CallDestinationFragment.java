@@ -1,6 +1,5 @@
 package com.sanfranciscosunrise.silente.calldestination;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -11,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 /**
- * Created by root on 5/31/17.
+ * Created by Blu-J on 5/31/17.
  */
 
 public class CallDestinationFragment extends Fragment implements View.OnClickListener{

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.preference.PreferenceManager;
 
 /**
- * Created by root on 5/31/17.
+ * Created by Blu-J on 5/31/17.
  */
 
 public class QueryPreferences {
