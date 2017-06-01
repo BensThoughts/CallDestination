@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">CallDestination</string>
     <string name="title_activity_call_destination">CallDestination</string>
+    <string name="overlay_button_search_mode">Search</string>
+    <string name="overlay_button_call_mode">Phone Call</string>
+    <string name="button_toggle_service_start">Start</string>
+    <string name="button_toggle_service_stop">Stop</string>
+    <string name="overlay_service_proccess_name">callDestinationService</string>
 </resources>

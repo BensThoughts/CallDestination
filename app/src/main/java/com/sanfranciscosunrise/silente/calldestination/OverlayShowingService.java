@@ -45,13 +45,18 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     private int originalYPos;
     private boolean moving;
     private WindowManager wm;
-    private boolean modeSearchOrCall; // true == search mode, false == call mode
+
+    private boolean modeSearchOrCall = true; // true == search mode, false == call mode
     private String mDestinationPhoneNumber;
 
     public class LocalBinder extends Binder {
         OverlayShowingService getService() {
             return OverlayShowingService.this;
         }
+    }
+
+    public static Intent newIntent(Context context) {
+        return new Intent(context, OverlayShowingService.class);
     }
 
     @Override
@@ -64,10 +69,10 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         super.onCreate();
 
         wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
-
-        modeSearchOrCall = true;
+        modeSearchOrCall = QueryPreferences.isServiceSearch(this);
+        mDestinationPhoneNumber = QueryPreferences.getPrefLastKnownPhoneNumber(this);
         overlayedButton = new Button(this);
-        overlayedButton.setText("Search");
+        setButtonText(modeSearchOrCall);
         overlayedButton.setOnTouchListener(this);
         //overlayedButton.setAlpha(0.0f);
         overlayedButton.setBackgroundColor(0x55fe4444);
@@ -96,7 +101,6 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         topLeftParams.width = 0;
         topLeftParams.height = 0;
         wm.addView(topLeftView, topLeftParams);
-
     }
 
     @Override
@@ -152,7 +156,6 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
                 return true;
             }
         }
-
         return false;
     }
 
@@ -160,6 +163,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     public void onClick(View v) {
         if (modeSearchOrCall) {
             Intent searchIntent = new Intent(this, PlacePickerActivity.class);
+            searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             searchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(searchIntent);
         } else if (mDestinationPhoneNumber != null) {
@@ -172,15 +176,20 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     public void setDestinationPhoneNumber(String destinationPhoneNumber) {
         mDestinationPhoneNumber = destinationPhoneNumber;
+        QueryPreferences.setPrefLastKnownPhoneNumber(this, mDestinationPhoneNumber);
     }
 
-    public void switchMode() {
-        if (modeSearchOrCall) {
-            modeSearchOrCall = false;
-            overlayedButton.setText("Phone Call");
+    public void setModeSearch(boolean modeSearch) {
+        modeSearchOrCall = modeSearch;
+        setButtonText(modeSearchOrCall);
+        QueryPreferences.setServiceSearch(this, modeSearchOrCall);
+    }
+
+    public void setButtonText(boolean modeSearch) {
+        if (modeSearch) {
+            overlayedButton.setText(R.string.overlay_button_search_mode);
         } else {
-            modeSearchOrCall = true;
-            overlayedButton.setText("Search");
+            overlayedButton.setText(R.string.overlay_button_call_mode);
         }
     }
 
