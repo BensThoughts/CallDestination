@@ -53,7 +53,8 @@ public class CallDestinationFragment extends Fragment {
 
     public void setServiceOn(boolean isOn) {
         mIsServiceOn = isOn;
-        Intent svc = new Intent(getActivity(), OverlayShowingService.class);
+        //Intent svc = new Intent(getActivity(), OverlayShowingService.class);
+        Intent svc = OverlayShowingService.newIntent(getActivity());
         if (mIsServiceOn) {
             getActivity().startService(svc);
         } else {
