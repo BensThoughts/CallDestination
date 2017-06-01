@@ -39,7 +39,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     private View topLeftView;
 
-    private ImageButton overlayedButton;
+    private ImageButton overlayButton;
     private float offsetX;
     private float offsetY;
     private int originalXPos;
@@ -72,12 +72,12 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
         modeSearchOrCall = QueryPreferences.isServiceSearch(this);
         mDestinationPhoneNumber = QueryPreferences.getPrefLastKnownPhoneNumber(this);
-        overlayedButton = new ImageButton(this);
+        overlayButton = new ImageButton(this);
         setButtonText(modeSearchOrCall);
-        overlayedButton.setOnTouchListener(this);
+        overlayButton.setOnTouchListener(this);
         //overlayedButton.setAlpha(0.0f);
-        overlayedButton.setBackgroundColor(0x55fe4444);
-        overlayedButton.setOnClickListener(this);
+        overlayButton.setBackgroundColor(0x55fe4444);
+        overlayButton.setOnClickListener(this);
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -88,7 +88,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         params.gravity = Gravity.LEFT | Gravity.TOP;
         params.x = 0;
         params.y = 0;
-        wm.addView(overlayedButton, params);
+        wm.addView(overlayButton, params);
 
         topLeftView = new View(this);
         WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
@@ -107,10 +107,10 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (overlayedButton != null) {
-            wm.removeView(overlayedButton);
+        if (overlayButton != null) {
+            wm.removeView(overlayButton);
             wm.removeView(topLeftView);
-            overlayedButton = null;
+            overlayButton = null;
             topLeftView = null;
         }
     }
@@ -124,7 +124,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             moving = false;
 
             int[] location = new int[2];
-            overlayedButton.getLocationOnScreen(location);
+            overlayButton.getLocationOnScreen(location);
 
             originalXPos = location[0];
             originalYPos = location[1];
@@ -138,7 +138,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             float x = event.getRawX();
             float y = event.getRawY();
 
-            WindowManager.LayoutParams params = (WindowManager.LayoutParams)overlayedButton.getLayoutParams();
+            WindowManager.LayoutParams params = (WindowManager.LayoutParams)overlayButton.getLayoutParams();
 
             int newX = (int) (offsetX + x);
             int newY = (int) (offsetY + y);
@@ -150,7 +150,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             params.x = newX - (topLeftLocationOnScreen[0]);
             params.y = newY - (topLeftLocationOnScreen[1]);
 
-            wm.updateViewLayout(overlayedButton, params);
+            wm.updateViewLayout(overlayButton, params);
             moving = true;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             if (moving) {
@@ -188,11 +188,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     public void setButtonText(boolean modeSearch) {
         if (modeSearch) {
-            overlayedButton.setImageResource(R.mipmap.ic_search);
-            //overlayedButton.setText(R.string.overlay_button_search_mode);
+            overlayButton.setImageResource(R.mipmap.ic_search);
+            //overlayButton.setText(R.string.overlay_button_search_mode);
         } else {
-            overlayedButton.setImageResource(R.mipmap.ic_call);
-            //overlayedButton.setText(R.string.overlay_button_call_mode);
+            overlayButton.setImageResource(R.mipmap.ic_call);
+            //overlayButton.setText(R.string.overlay_button_call_mode);
         }
     }
 
