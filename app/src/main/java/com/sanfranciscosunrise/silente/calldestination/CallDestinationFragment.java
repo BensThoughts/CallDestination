@@ -16,16 +16,15 @@ import android.widget.Button;
  * be the primary place for setting various service and button options as well.
  *
  * TODO Options:
- *  * pressing search can either launch or not launch directions alongside binding the destination phone
+ *  * choose whether or not pressing search launches directions alongside binding the destination phone
  *    number to the button.
  */
 
-public class CallDestinationFragment extends Fragment implements View.OnClickListener{
+public class CallDestinationFragment extends Fragment {
     private static final String TAG = "CallDestinationFragment";
 
     private Button mButton;
     private boolean mIsServiceOn = false;
-
 
     public static CallDestinationFragment newInstance() {
         return new CallDestinationFragment();
@@ -43,14 +42,18 @@ public class CallDestinationFragment extends Fragment implements View.OnClickLis
 
         mButton = (Button)v.findViewById(R.id.toggle_service);
         setButtonText(mIsServiceOn);
-        mButton.setOnClickListener(this);
+        mButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                setServiceOn(!mIsServiceOn);
+            }
+        });
 
         return v;
     }
 
     public void setServiceOn(boolean isOn) {
-        Intent svc = new Intent(getActivity(), OverlayShowingService.class);
         mIsServiceOn = isOn;
+        Intent svc = new Intent(getActivity(), OverlayShowingService.class);
         if (mIsServiceOn) {
             getActivity().startService(svc);
         } else {
@@ -68,15 +71,4 @@ public class CallDestinationFragment extends Fragment implements View.OnClickLis
             mButton.setText(R.string.button_toggle_service_start);
         }
     }
-
-    public void onClick(View v) {
-        if (v.getId() == R.id.toggle_service) {
-            if (mIsServiceOn) {
-                setServiceOn(false);
-            } else {
-                setServiceOn(true);
-            }
-        }
-    }
-
 }
