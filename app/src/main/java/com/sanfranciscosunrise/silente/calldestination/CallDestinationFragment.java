@@ -11,6 +11,13 @@ import android.widget.Button;
 
 /**
  * Created by Blu-J on 5/31/17.
+ * This is the main fragment that is used to start and stop the BAAS (Button as a service).
+ * In the future I will be adding a few extra options into this fragment as it will also
+ * be the primary place for setting various service and button options as well.
+ *
+ * TODO Options:
+ *  * pressing search can either launch or not launch directions alongside binding the destination phone
+ *    number to the button.
  */
 
 public class CallDestinationFragment extends Fragment implements View.OnClickListener{
