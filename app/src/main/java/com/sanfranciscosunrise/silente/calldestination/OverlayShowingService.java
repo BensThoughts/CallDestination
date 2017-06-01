@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 /**
  * Created by Blu-J on 5/28/17.
@@ -38,7 +39,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     private View topLeftView;
 
-    private Button overlayedButton;
+    private ImageButton overlayedButton;
     private float offsetX;
     private float offsetY;
     private int originalXPos;
@@ -71,7 +72,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
         modeSearchOrCall = QueryPreferences.isServiceSearch(this);
         mDestinationPhoneNumber = QueryPreferences.getPrefLastKnownPhoneNumber(this);
-        overlayedButton = new Button(this);
+        overlayedButton = new ImageButton(this);
         setButtonText(modeSearchOrCall);
         overlayedButton.setOnTouchListener(this);
         //overlayedButton.setAlpha(0.0f);
@@ -187,9 +188,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     public void setButtonText(boolean modeSearch) {
         if (modeSearch) {
-            overlayedButton.setText(R.string.overlay_button_search_mode);
+            overlayedButton.setImageResource(R.mipmap.ic_search);
+            //overlayedButton.setText(R.string.overlay_button_search_mode);
         } else {
-            overlayedButton.setText(R.string.overlay_button_call_mode);
+            overlayedButton.setImageResource(R.mipmap.ic_call);
+            //overlayedButton.setText(R.string.overlay_button_call_mode);
         }
     }
 
