@@ -40,6 +40,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     private View topLeftView;
 
     private ImageButton overlayButton;
+    private ImageButton cancelButton;
     private float offsetX;
     private float offsetY;
     private int originalXPos;
@@ -72,6 +73,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
         modeSearchOrCall = QueryPreferences.isServiceSearch(this);
         mDestinationPhoneNumber = QueryPreferences.getPrefLastKnownPhoneNumber(this);
+
         overlayButton = new ImageButton(this);
         setButtonText(modeSearchOrCall);
         overlayButton.setOnTouchListener(this);
@@ -89,6 +91,23 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         params.x = 0;
         params.y = 0;
         wm.addView(overlayButton, params);
+
+        cancelButton = new ImageButton(this);
+        cancelButton.setImageResource(R.mipmap.ic_cancel);
+        cancelButton.setOnTouchListener(this);
+        cancelButton.setBackgroundColor(0x55fe4444);
+        cancelButton.setOnClickListener(this);
+
+        WindowManager.LayoutParams cancelParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT);
+
+        cancelParams.gravity = Gravity.LEFT | Gravity.TOP;
+        cancelParams.x = params.x + 60;
+        cancelParams.y = 0;
+        wm.addView(cancelButton, cancelParams);
 
         topLeftView = new View(this);
         WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
@@ -112,6 +131,10 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             wm.removeView(topLeftView);
             overlayButton = null;
             topLeftView = null;
+        }
+        if (cancelButton !=null) {
+            wm.removeView(cancelButton);
+            cancelButton = null;
         }
     }
 
@@ -139,6 +162,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             float y = event.getRawY();
 
             WindowManager.LayoutParams params = (WindowManager.LayoutParams)overlayButton.getLayoutParams();
+            WindowManager.LayoutParams cancelParams = (WindowManager.LayoutParams)cancelButton.getLayoutParams();
 
             int newX = (int) (offsetX + x);
             int newY = (int) (offsetY + y);
@@ -149,8 +173,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
             params.x = newX - (topLeftLocationOnScreen[0]);
             params.y = newY - (topLeftLocationOnScreen[1]);
+            cancelParams.x = params.x + 60;
+            cancelParams.y = newY - (topLeftLocationOnScreen[1]);
 
             wm.updateViewLayout(overlayButton, params);
+            wm.updateViewLayout(cancelButton, cancelParams);
             moving = true;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             if (moving) {
