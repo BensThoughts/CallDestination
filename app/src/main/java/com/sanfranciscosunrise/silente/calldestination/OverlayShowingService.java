@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
@@ -40,7 +41,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     private View topLeftView;
 
     private ImageButton overlayButton;
-    //private ImageButton cancelButton;
+    private ImageButton cancelButton;
     private float offsetX;
     private float offsetY;
     private int originalXPos;
@@ -49,6 +50,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     private WindowManager wm;
 
     private boolean modeSearchOrCall = true; // true == search mode, false == call mode
+    private boolean mClicked = false;
     private String mDestinationPhoneNumber;
 
     public class LocalBinder extends Binder {
@@ -70,6 +72,8 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     public void onCreate() {
         super.onCreate();
 
+        mClicked = false;
+
         wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
         modeSearchOrCall = QueryPreferences.isServiceSearch(this);
         mDestinationPhoneNumber = QueryPreferences.getPrefLastKnownPhoneNumber(this);
@@ -79,7 +83,6 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         overlayButton.setOnTouchListener(this);
         overlayButton.setAlpha(0.7f);
         overlayButton.setBackgroundColor(0x55fe4444);
-        overlayButton.setOnClickListener(this);
         overlayButton.setCropToPadding(true);
         overlayButton.setHovered(true);
         overlayButton.setMaxHeight(2);
@@ -135,16 +138,16 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
 
         topLeftView = new View(this);
-        WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT);
-        topLeftParams.gravity = Gravity.LEFT | Gravity.TOP;
-        topLeftParams.x = 0;
-        topLeftParams.y = 0;
-        topLeftParams.width = 0;
-        topLeftParams.height = 0;
+        //WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+        //        WindowManager.LayoutParams.WRAP_CONTENT,
+        //        WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+        //        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+        //        PixelFormat.TRANSLUCENT);
+        //topLeftParams.gravity = Gravity.LEFT | Gravity.TOP;
+        //topLeftParams.x = 0;
+        //topLeftParams.y = 0;
+        //topLeftParams.width = 0;
+        //topLeftParams.height = 0;
      //   wm.addView(topLeftView, topLeftParams);
     }
 
@@ -157,10 +160,10 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             overlayButton = null;
             topLeftView = null;
         }
-        //if (cancelButton !=null) {
-        //    wm.removeView(cancelButton);
-        //    cancelButton = null;
-        //}
+        if (cancelButton !=null) {
+            wm.removeView(cancelButton);
+            cancelButton = null;
+        }
     }
 
     @Override
@@ -200,9 +203,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             params.y = newY - (topLeftLocationOnScreen[1]);
             //cancelParams.x = params.x + 70;
             //cancelParams.y = params.y;
-
             wm.updateViewLayout(overlayButton, params);
-            //wm.updateViewLayout(cancelButton, cancelParams);
+            if (cancelButton != null) {
+                params.x = params.x + overlayButton.getWidth();
+                wm.updateViewLayout(cancelButton, params);
+            }
             moving = true;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             if (moving) {
@@ -214,16 +219,32 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     @Override
     public void onClick(View v) {
-        if (modeSearchOrCall) {
-            Intent searchIntent = new Intent(this, PlacePickerActivity.class);
-            searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-            searchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(searchIntent);
-        } else if (mDestinationPhoneNumber != null) {
-            Intent phoneCallIntent = new Intent(Intent.ACTION_DIAL,
-                    Uri.fromParts("tel", mDestinationPhoneNumber, null));
-            phoneCallIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(phoneCallIntent);
+        Log.i(TAG, "" + v.getId());
+        if (v.getId() == overlayButton.getId()) {
+            if (modeSearchOrCall) {
+                Intent searchIntent = new Intent(this, PlacePickerActivity.class);
+                //searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                searchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(searchIntent);
+            } else {
+                if (!mClicked) {
+                    revealCancelButton();
+                    mClicked = true;
+                } else {
+                    if (mDestinationPhoneNumber != null) {
+                        Intent phoneCallIntent = new Intent(Intent.ACTION_DIAL,
+                                Uri.fromParts("tel", mDestinationPhoneNumber, null));
+                        phoneCallIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(phoneCallIntent);
+                    }
+                    hideCancelButton();
+                    mClicked = false;
+                }
+            }
+        } else if (mClicked) {
+            Log.i(TAG, "Inside cancelButton click");
+            setModeSearch(true);
+            hideCancelButton();
         }
     }
 
@@ -238,7 +259,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         QueryPreferences.setServiceSearch(this, modeSearchOrCall);
     }
 
-    public void setButtonText(boolean modeSearch) {
+    private void setButtonText(boolean modeSearch) {
         if (modeSearch) {
             overlayButton.setImageResource(R.mipmap.ic_search);
             //overlayButton.setText(R.string.overlay_button_search_mode);
@@ -246,6 +267,34 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             overlayButton.setImageResource(R.mipmap.ic_call);
             //overlayButton.setText(R.string.overlay_button_call_mode);
         }
+    }
+
+    public void revealCancelButton() {
+        cancelButton = new ImageButton(this);
+        cancelButton.setOnTouchListener(this);
+        cancelButton.setBackgroundColor(0x55fe4444);
+        cancelButton.setOnClickListener(this);
+        cancelButton.setAlpha(0.7f);
+        //cancelButton.setCropToPadding(true);
+        //cancelButton.setHovered(true);
+        cancelButton.setImageResource(R.mipmap.ic_cancel);
+
+        WindowManager.LayoutParams cancelParams = (WindowManager.LayoutParams)overlayButton.getLayoutParams();
+        cancelParams.x =  cancelParams.x + overlayButton.getWidth();
+        wm.addView(cancelButton, cancelParams);
+    }
+
+    private void hideCancelButton() {
+        if (cancelButton !=null) {
+            wm.removeView(cancelButton);
+            cancelButton = null;
+        }
+    }
+
+    private Point getViewCoordinates(View view) {
+        int[] location = new int[2];
+        view.getLocationOnScreen(location);
+        return new Point(location[0], location[1]);
     }
 
 }
