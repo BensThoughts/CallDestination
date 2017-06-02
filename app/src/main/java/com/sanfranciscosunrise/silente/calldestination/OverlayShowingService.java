@@ -126,7 +126,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         params.x = 0;
         params.y = 0;
         wm.addView(overlayButton, params);
-        
+
         topLeftView = new View(this);
         //WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
         //        WindowManager.LayoutParams.WRAP_CONTENT,
@@ -194,6 +194,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             if (cancelButton != null) {
                 params.x = params.x + overlayButton.getWidth();
                 wm.updateViewLayout(cancelButton, params);
+                params.x = params.x - overlayButton.getWidth();
             }
             moving = true;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -247,8 +248,9 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         WindowManager.LayoutParams cancelParams = (WindowManager.LayoutParams)overlayButton.getLayoutParams();
         cancelParams.x =  cancelParams.x + overlayButton.getWidth();
         wm.addView(cancelButton, cancelParams);
+        cancelParams.x = cancelParams.x - overlayButton.getWidth();
 
-        new CountDownTimer(5000, 1000) {
+        new CountDownTimer(3000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) { }
 
@@ -256,7 +258,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             public void onFinish() {
                 removeCancelButton();
             }
-        };
+        }.start();
     }
 
     private void removeCancelButton() {
