@@ -3,7 +3,6 @@ package com.sanfranciscosunrise.silente.calldestination;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +37,7 @@ public class CallDestinationFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.activity_call_destination, container, false);
+        View v = inflater.inflate(R.layout.fragment_settings_call_destination, container, false);
 
         mButton = (Button)v.findViewById(R.id.toggle_service);
         setButtonText(mIsServiceOn);

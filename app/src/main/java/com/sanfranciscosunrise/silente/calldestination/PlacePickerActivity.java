@@ -80,7 +80,7 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_call_destination);
+        //setContentView(R.layout.fragment_settings_call_destination);
 
         mLocationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
 

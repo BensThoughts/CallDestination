@@ -40,7 +40,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     private View topLeftView;
 
     private ImageButton overlayButton;
-    private ImageButton cancelButton;
+    //private ImageButton cancelButton;
     private float offsetX;
     private float offsetY;
     private int originalXPos;
@@ -77,9 +77,13 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         overlayButton = new ImageButton(this);
         setButtonText(modeSearchOrCall);
         overlayButton.setOnTouchListener(this);
-        //overlayedButton.setAlpha(0.0f);
+        overlayButton.setAlpha(0.7f);
         overlayButton.setBackgroundColor(0x55fe4444);
         overlayButton.setOnClickListener(this);
+        overlayButton.setCropToPadding(true);
+        overlayButton.setHovered(true);
+        overlayButton.setMaxHeight(2);
+        overlayButton.setMaxWidth(2);
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -92,11 +96,26 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         params.y = 0;
         wm.addView(overlayButton, params);
 
+        /***************************************************************
+         *
+         * Not sure if we are going to keep this cancel button,
+         * looking for less resource intensive ways of doing this first
+         * seems two buttons are not greater then one, as the app gets shutdown
+         * by the system with two for I'm guessing resource reasons
+         *
+         * still need to profile this
+         * and look at alternatives.
+         *
         cancelButton = new ImageButton(this);
-        cancelButton.setImageResource(R.mipmap.ic_cancel);
         cancelButton.setOnTouchListener(this);
         cancelButton.setBackgroundColor(0x55fe4444);
         cancelButton.setOnClickListener(this);
+        cancelButton.setAlpha(0.7f);
+        cancelButton.setCropToPadding(true);
+        cancelButton.setHovered(true);
+        //cancelButton.setMaxHeight(2);
+        //cancelButton.setMaxWidth(2);
+        cancelButton.setImageResource(R.mipmap.ic_cancel);
 
         WindowManager.LayoutParams cancelParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -105,9 +124,15 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
                 PixelFormat.TRANSLUCENT);
 
         cancelParams.gravity = Gravity.LEFT | Gravity.TOP;
-        cancelParams.x = params.x + 60;
+        cancelParams.width = 40;
+        cancelParams.height = 40;
+        cancelParams.x = params.x + 70;
         cancelParams.y = 0;
+        Log.i(TAG, "cancelButton.getHeight() == " + cancelButton.getHeight());
         wm.addView(cancelButton, cancelParams);
+        Log.i(TAG, "cancelButton.getHeight() == " + cancelButton.getHeight());
+         ***************************************************************/
+
 
         topLeftView = new View(this);
         WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
@@ -120,7 +145,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         topLeftParams.y = 0;
         topLeftParams.width = 0;
         topLeftParams.height = 0;
-        wm.addView(topLeftView, topLeftParams);
+     //   wm.addView(topLeftView, topLeftParams);
     }
 
     @Override
@@ -128,14 +153,14 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         super.onDestroy();
         if (overlayButton != null) {
             wm.removeView(overlayButton);
-            wm.removeView(topLeftView);
+            //wm.removeView(topLeftView);
             overlayButton = null;
             topLeftView = null;
         }
-        if (cancelButton !=null) {
-            wm.removeView(cancelButton);
-            cancelButton = null;
-        }
+        //if (cancelButton !=null) {
+        //    wm.removeView(cancelButton);
+        //    cancelButton = null;
+        //}
     }
 
     @Override
@@ -162,7 +187,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             float y = event.getRawY();
 
             WindowManager.LayoutParams params = (WindowManager.LayoutParams)overlayButton.getLayoutParams();
-            WindowManager.LayoutParams cancelParams = (WindowManager.LayoutParams)cancelButton.getLayoutParams();
+            //WindowManager.LayoutParams cancelParams = (WindowManager.LayoutParams)cancelButton.getLayoutParams();
 
             int newX = (int) (offsetX + x);
             int newY = (int) (offsetY + y);
@@ -173,11 +198,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
             params.x = newX - (topLeftLocationOnScreen[0]);
             params.y = newY - (topLeftLocationOnScreen[1]);
-            cancelParams.x = params.x + 60;
-            cancelParams.y = newY - (topLeftLocationOnScreen[1]);
+            //cancelParams.x = params.x + 70;
+            //cancelParams.y = params.y;
 
             wm.updateViewLayout(overlayButton, params);
-            wm.updateViewLayout(cancelButton, cancelParams);
+            //wm.updateViewLayout(cancelButton, cancelParams);
             moving = true;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             if (moving) {
