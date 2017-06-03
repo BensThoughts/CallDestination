@@ -140,13 +140,14 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     private Intent getSearchOrCallIntent(boolean isSearchOrCall) {
         if (isSearchOrCall) {
             Intent searchIntent = new Intent(getApplicationContext(), PlacePickerActivity.class);
-            searchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            searchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             //searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             return searchIntent;
         } else if (mDestinationPhoneNumber != null){
             Intent phoneCallIntent=new Intent(Intent.ACTION_DIAL,
                     Uri.fromParts("tel",mDestinationPhoneNumber,null));
-            phoneCallIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            phoneCallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             return phoneCallIntent;
         }
 
