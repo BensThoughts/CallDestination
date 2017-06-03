@@ -3,6 +3,7 @@ package com.sanfranciscosunrise.silente.calldestination;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Binder;
@@ -81,7 +82,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         setButtonText(modeSearchOrCall);
         overlayButton.setOnTouchListener(this);
         overlayButton.setAlpha(0.7f);
-        overlayButton.setBackgroundColor(0x55fe4444);
+        overlayButton.setBackgroundColor(Color.TRANSPARENT);
         overlayButton.setCropToPadding(true);
         overlayButton.setHovered(true);
         overlayButton.setMaxHeight(2);
@@ -227,7 +228,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     public void createCancelButton() {
         cancelButton = new ImageButton(this);
         cancelButton.setOnTouchListener(this);
-        cancelButton.setBackgroundColor(0x55fe4444);
+        cancelButton.setBackgroundColor(Color.TRANSPARENT);
         cancelButton.setAlpha(0.7f);
         //cancelButton.setCropToPadding(true);
         //cancelButton.setHovered(true);
