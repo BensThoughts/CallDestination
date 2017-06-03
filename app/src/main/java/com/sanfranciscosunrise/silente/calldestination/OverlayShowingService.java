@@ -83,10 +83,8 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         overlayButton.setOnTouchListener(this);
         overlayButton.setAlpha(0.7f);
         overlayButton.setBackgroundColor(Color.TRANSPARENT);
-        overlayButton.setCropToPadding(true);
+        //overlayButton.setCropToPadding(true);
         overlayButton.setHovered(true);
-        overlayButton.setMaxHeight(2);
-        overlayButton.setMaxWidth(2);
 
         overlayButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,7 +223,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         }
     }
 
-    public void createCancelButton() {
+    private void createCancelButton() {
         cancelButton = new ImageButton(this);
         cancelButton.setOnTouchListener(this);
         cancelButton.setBackgroundColor(Color.TRANSPARENT);
