@@ -1,5 +1,7 @@
 package com.sanfranciscosunrise.silente.calldestination;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +11,7 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -72,6 +75,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     public void onCreate() {
         super.onCreate();
         Log.i(TAG, "onCreate()");
+        startForeground(3499, buildNotification());
 
         mClicked = false;
 
@@ -91,9 +95,10 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
                     createCancelButton();
                     mClicked = true;
                 } else {
-                    startSearchOrCall(modeSearchOrCall);
+                    Intent i = getSearchOrCallIntent(modeSearchOrCall);
                     removeCancelButton();
                     mClicked = false;
+                    startActivity(i);
                 }
             }
         });
@@ -132,23 +137,31 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
          ****************/
     }
 
-    private void startSearchOrCall(boolean isSearchOrCall) {
+    private Intent getSearchOrCallIntent(boolean isSearchOrCall) {
         if (isSearchOrCall) {
             Intent searchIntent = new Intent(getApplicationContext(), PlacePickerActivity.class);
             searchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             //searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-            startActivity(searchIntent);
+            return searchIntent;
         } else if (mDestinationPhoneNumber != null){
             Intent phoneCallIntent=new Intent(Intent.ACTION_DIAL,
                     Uri.fromParts("tel",mDestinationPhoneNumber,null));
             phoneCallIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(phoneCallIntent);
+            return phoneCallIntent;
         }
+
+        return null;  // NEED to FIX< COULD CAUSE CRASH
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY_COMPATIBILITY;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopForeground(true);
         if (overlayButton != null) {
             wm.removeView(overlayButton);
             //wm.removeView(topLeftView);
@@ -245,9 +258,10 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    startSearchOrCall(!modeSearchOrCall);
+                    Intent i = getSearchOrCallIntent(!modeSearchOrCall);
                     setModeSearch(!modeSearchOrCall);
                     setButtonImage(!modeSearchOrCall, cancelButton);
+                    startActivity(i);
             }
         });
 
@@ -276,4 +290,20 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             cancelButton = null;
         }
     }
+
+    private Notification buildNotification() {
+        NotificationCompat.Builder b=new NotificationCompat.Builder(this);
+
+        b.setOngoing(false)
+                .setContentTitle("CallDestination Started")
+                .setContentText("You have enabled the CallDestination BAAS (Button As A Service).")
+                .setSmallIcon(android.R.drawable.stat_sys_speakerphone)
+                .setTicker("CallDestination BAAS Enabled")
+                .setContentIntent(PendingIntent.getActivity(this, 5544,
+                        new Intent(getApplicationContext(), CallDestinationActivity.class),
+                        PendingIntent.FLAG_UPDATE_CURRENT));
+        return(b.build());
+    }
+
 }
+

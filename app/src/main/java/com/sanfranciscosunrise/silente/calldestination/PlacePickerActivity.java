@@ -101,7 +101,9 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
                                         new LatLng(locationLat, locationLng)))
                                 .build(this);
                 //placePickingIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                //placePickingIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                //placePickingIntent.setFlags(placePickingIntent.getFlags()
+                //        | Intent.FLAG_ACTIVITY_NO_HISTORY
+                //        | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivityForResult(placePickingIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
             } catch (GooglePlayServicesRepairableException e) {
                 Log.e(TAG, "ERROR: " + e);
