@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.CountDownTimer;
@@ -14,7 +13,6 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageButton;
 
 /**
@@ -238,7 +236,6 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             @Override
             public void onClick(View view) {
                 if (mClicked) {
-                    Log.i(TAG, "Inside cancelButton click");
                     setModeSearch(true);
                     removeCancelButton();
                 }
@@ -250,7 +247,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         wm.addView(cancelButton, cancelParams);
         cancelParams.x = cancelParams.x - overlayButton.getWidth();
 
-        new CountDownTimer(3000, 1000) {
+        new CountDownTimer(2500, 1000) {
             @Override
             public void onTick(long millisUntilFinished) { }
 
