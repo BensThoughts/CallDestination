@@ -162,9 +162,8 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
                 mapIntent.setPackage("com.google.android.apps.maps");
                 mapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 //mapIntent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
-                startActivity(mapIntent);
                 finish();
-
+                startActivity(mapIntent);
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
                 // Handle the error

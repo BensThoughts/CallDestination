@@ -50,7 +50,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     private WindowManager wm;
 
     private boolean modeSearchOrCall = true; // true == search mode, false == call mode
-    private boolean mClicked = false;
+    private boolean mClicked;
     private String mDestinationPhoneNumber;
 
     public class LocalBinder extends Binder {
@@ -71,6 +71,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.i(TAG, "onCreate()");
 
         mClicked = false;
 
@@ -82,8 +83,6 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         setButtonImage(modeSearchOrCall, overlayButton);
         overlayButton.setAlpha(0.7f);
         overlayButton.setBackgroundColor(Color.TRANSPARENT);
-        //overlayButton.setCropToPadding(true);
-        overlayButton.setHovered(true);
         overlayButton.setOnTouchListener(this);
         overlayButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,24 +110,33 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         wm.addView(overlayButton, params);
 
         topLeftView = new View(this);
-        //WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
-        //        WindowManager.LayoutParams.WRAP_CONTENT,
-        //        WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-        //        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-        //        PixelFormat.TRANSLUCENT);
-        //topLeftParams.gravity = Gravity.LEFT | Gravity.TOP;
-        //topLeftParams.x = 0;
-        //topLeftParams.y = 0;
-        //topLeftParams.width = 0;
-        //topLeftParams.height = 0;
-     //   wm.addView(topLeftView, topLeftParams);
+
+        /****************
+         * I'm uncertain if we need to add topLeftView actually to the screen
+         * or even really what it is for.  I suspect for screens in which the top left is
+         * not 0,0?? is topLeftView needed at all? can we just set to [0,0] in the
+         * onTouchListener, which is the only place this is used at all.
+         *
+         * WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+         *        WindowManager.LayoutParams.WRAP_CONTENT,
+         *        WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+         *        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+         *        PixelFormat.TRANSLUCENT);
+         * topLeftParams.gravity = Gravity.LEFT | Gravity.TOP;
+         *
+         * topLeftParams.x = 0;
+         * topLeftParams.y = 0;
+         * topLeftParams.width = 0;
+         * topLeftParams.height = 0;
+         * wm.addView(topLeftView, topLeftParams);*
+         ****************/
     }
 
     private void startSearchOrCall(boolean isSearchOrCall) {
         if (isSearchOrCall) {
             Intent searchIntent = new Intent(getApplicationContext(), PlacePickerActivity.class);
-            //searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             searchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            //searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             startActivity(searchIntent);
         } else if (mDestinationPhoneNumber != null){
             Intent phoneCallIntent=new Intent(Intent.ACTION_DIAL,
@@ -173,8 +181,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             float x = event.getRawX();
             float y = event.getRawY();
 
+            // Both buttons share the same LayoutParams because they are
+            // placed on screen identically in every way possible, other
+            // then the cancel button is further to the right by exactly
+            // the width of one button
             WindowManager.LayoutParams params = (WindowManager.LayoutParams)overlayButton.getLayoutParams();
-            //WindowManager.LayoutParams cancelParams = (WindowManager.LayoutParams)cancelButton.getLayoutParams();
 
             int newX = (int) (offsetX + x);
             int newY = (int) (offsetY + y);
@@ -185,14 +196,18 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
             params.x = newX - (topLeftLocationOnScreen[0]);
             params.y = newY - (topLeftLocationOnScreen[1]);
-            //cancelParams.x = params.x + 70;
-            //cancelParams.y = params.y;
+
             wm.updateViewLayout(overlayButton, params);
+
+            // and here cancelButton uses overlayButton's LayoutParams
+            // and then puts them back to where they were when done
+            // with them.
             if (cancelButton != null) {
                 params.x = params.x + overlayButton.getWidth();
                 wm.updateViewLayout(cancelButton, params);
                 params.x = params.x - overlayButton.getWidth();
             }
+
             moving = true;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             if (moving) {
@@ -210,7 +225,6 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     public void setModeSearch(boolean modeSearch) {
         modeSearchOrCall = modeSearch;
         setButtonImage(modeSearchOrCall, overlayButton);
-        //setButtonImage(modeSearchOrCall, overlayButton);
         QueryPreferences.setServiceSearch(this, modeSearchOrCall);
     }
 
@@ -226,20 +240,19 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         cancelButton = new ImageButton(this);
         cancelButton.setBackgroundColor(Color.TRANSPARENT);
         cancelButton.setAlpha(0.7f);
-        //cancelButton.setCropToPadding(true);
-        //cancelButton.setHovered(true);
         setButtonImage(!modeSearchOrCall, cancelButton);
         cancelButton.setOnTouchListener(this);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                     startSearchOrCall(!modeSearchOrCall);
-                    //setButtonImage(!modeSearchOrCall, overlayButton);
                     setModeSearch(!modeSearchOrCall);
                     setButtonImage(!modeSearchOrCall, cancelButton);
             }
         });
 
+        // Again both buttons share the same LayoutParams, see above
+        // so we put the params back when we are done with them...
         WindowManager.LayoutParams cancelParams = (WindowManager.LayoutParams)overlayButton.getLayoutParams();
         cancelParams.x =  cancelParams.x + overlayButton.getWidth();
         wm.addView(cancelButton, cancelParams);
