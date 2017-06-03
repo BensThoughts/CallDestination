@@ -74,44 +74,30 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
         mClicked = false;
 
-        wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
+        wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         modeSearchOrCall = QueryPreferences.isServiceSearch(this);
         mDestinationPhoneNumber = QueryPreferences.getPrefLastKnownPhoneNumber(this);
 
         overlayButton = new ImageButton(this);
-        setButtonText(modeSearchOrCall);
-        overlayButton.setOnTouchListener(this);
+        setButtonImage(modeSearchOrCall, overlayButton);
         overlayButton.setAlpha(0.7f);
         overlayButton.setBackgroundColor(Color.TRANSPARENT);
         //overlayButton.setCropToPadding(true);
         overlayButton.setHovered(true);
-
+        overlayButton.setOnTouchListener(this);
         overlayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (modeSearchOrCall) {
-                    Intent searchIntent = new Intent(getApplicationContext(), PlacePickerActivity.class);
-                    //searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                    searchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(searchIntent);
+                if (!mClicked) {
+                    createCancelButton();
+                    mClicked = true;
                 } else {
-                    if (!mClicked) {
-                        createCancelButton();
-                        mClicked = true;
-                    } else {
-                        if (mDestinationPhoneNumber != null) {
-                            Intent phoneCallIntent = new Intent(Intent.ACTION_DIAL,
-                                    Uri.fromParts("tel", mDestinationPhoneNumber, null));
-                            phoneCallIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(phoneCallIntent);
-                        }
-                        removeCancelButton();
-                        mClicked = false;
-                    }
+                    startSearchOrCall(modeSearchOrCall);
+                    removeCancelButton();
+                    mClicked = false;
                 }
             }
         });
-
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -136,6 +122,20 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         //topLeftParams.width = 0;
         //topLeftParams.height = 0;
      //   wm.addView(topLeftView, topLeftParams);
+    }
+
+    private void startSearchOrCall(boolean isSearchOrCall) {
+        if (isSearchOrCall) {
+            Intent searchIntent = new Intent(getApplicationContext(), PlacePickerActivity.class);
+            //searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            searchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(searchIntent);
+        } else if (mDestinationPhoneNumber != null){
+            Intent phoneCallIntent=new Intent(Intent.ACTION_DIAL,
+                    Uri.fromParts("tel",mDestinationPhoneNumber,null));
+            phoneCallIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(phoneCallIntent);
+        }
     }
 
     @Override
@@ -209,35 +209,34 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     public void setModeSearch(boolean modeSearch) {
         modeSearchOrCall = modeSearch;
-        setButtonText(modeSearchOrCall);
+        setButtonImage(modeSearchOrCall, overlayButton);
+        //setButtonImage(modeSearchOrCall, overlayButton);
         QueryPreferences.setServiceSearch(this, modeSearchOrCall);
     }
 
-    private void setButtonText(boolean modeSearch) {
+    private void setButtonImage(boolean modeSearch, ImageButton button) {
         if (modeSearch) {
-            overlayButton.setImageResource(R.mipmap.ic_search);
-            //overlayButton.setText(R.string.overlay_button_search_mode);
+            button.setImageResource(R.mipmap.ic_search);
         } else {
-            overlayButton.setImageResource(R.mipmap.ic_call);
-            //overlayButton.setText(R.string.overlay_button_call_mode);
+            button.setImageResource(R.mipmap.ic_call);
         }
     }
 
     private void createCancelButton() {
         cancelButton = new ImageButton(this);
-        cancelButton.setOnTouchListener(this);
         cancelButton.setBackgroundColor(Color.TRANSPARENT);
         cancelButton.setAlpha(0.7f);
         //cancelButton.setCropToPadding(true);
         //cancelButton.setHovered(true);
-        cancelButton.setImageResource(R.mipmap.ic_cancel);
+        setButtonImage(!modeSearchOrCall, cancelButton);
+        cancelButton.setOnTouchListener(this);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mClicked) {
-                    setModeSearch(true);
-                    removeCancelButton();
-                }
+                    startSearchOrCall(!modeSearchOrCall);
+                    //setButtonImage(!modeSearchOrCall, overlayButton);
+                    setModeSearch(!modeSearchOrCall);
+                    setButtonImage(!modeSearchOrCall, cancelButton);
             }
         });
 
