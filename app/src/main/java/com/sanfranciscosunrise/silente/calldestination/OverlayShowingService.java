@@ -5,19 +5,26 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 
 /**
  * Created by Blu-J on 5/28/17.
@@ -39,6 +46,11 @@ import android.widget.ImageButton;
 public class OverlayShowingService extends Service implements View.OnTouchListener {
     private static final String TAG = "OverlayShowingService";
 
+    private static final String[] LOCATION_PERMISSIONS = new String[]{
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION
+    };
+
     private final IBinder mBinder = new LocalBinder();
 
     private View topLeftView;
@@ -55,6 +67,9 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     private boolean modeSearchOrCall = true; // true == search mode, false == call mode
     private boolean mClicked;
     private String mDestinationPhoneNumber;
+
+    private LocationManager mLocationManager;
+    private LatLngBounds mCurrentLatLngBounds;
 
     public class LocalBinder extends Binder {
         OverlayShowingService getService() {
@@ -74,8 +89,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i(TAG, "onCreate()");
         startForeground(3499, buildNotification());
+
+        if (hasLocationPermission()) {
+            mLocationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
+        }
 
         mClicked = false;
 
@@ -93,12 +111,21 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             public void onClick(View view) {
                 if (!mClicked) {
                     createCancelButton();
+                    if (hasLocationPermission()) {
+                        double locationLat = findLocation().getLatitude();
+                        double locationLng = findLocation().getLongitude();
+                        mCurrentLatLngBounds = new LatLngBounds(
+                                new LatLng(locationLat, locationLng),
+                                new LatLng(locationLat, locationLng));
+                        Log.i(TAG, "Current Location: " + mCurrentLatLngBounds.toString());
+                    }
                     mClicked = true;
                 } else {
-                    Intent i = getSearchOrCallIntent(modeSearchOrCall);
+                    //Intent i = getSearchOrCallIntent(modeSearchOrCall);
                     removeCancelButton();
                     mClicked = false;
-                    startActivity(i);
+                    //startActivity(i);
+                    getSearchOrCallIntent(modeSearchOrCall);
                 }
             }
         });
@@ -137,21 +164,27 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
          ****************/
     }
 
-    private Intent getSearchOrCallIntent(boolean isSearchOrCall) {
+    private void getSearchOrCallIntent(boolean isSearchOrCall) {
         if (isSearchOrCall) {
             Intent searchIntent = new Intent(getApplicationContext(), PlacePickerActivity.class);
             searchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            if (hasLocationPermission()) {
+                searchIntent.putExtra("LOCATION", mCurrentLatLngBounds);
+            }
+
             //searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-            return searchIntent;
+            //return searchIntent;
+            startActivity(searchIntent);
         } else if (mDestinationPhoneNumber != null){
             Intent phoneCallIntent=new Intent(Intent.ACTION_DIAL,
                     Uri.fromParts("tel",mDestinationPhoneNumber,null));
             phoneCallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            return phoneCallIntent;
+            //return phoneCallIntent;
+            startActivity(phoneCallIntent);
         }
 
-        return null;  // NEED to FIX< COULD CAUSE CRASH
+        //return null;  // NEED to FIX< COULD CAUSE CRASH
     }
 
     @Override
@@ -171,6 +204,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         }
         removeCancelButton();
     }
+
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -242,7 +276,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         QueryPreferences.setServiceSearch(this, modeSearchOrCall);
     }
 
-    private void setButtonImage(boolean modeSearch, ImageButton button) {
+    private static void setButtonImage(boolean modeSearch, ImageButton button) {
         if (modeSearch) {
             button.setImageResource(R.mipmap.ic_search);
         } else {
@@ -259,10 +293,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    Intent i = getSearchOrCallIntent(!modeSearchOrCall);
+                    //Intent i = getSearchOrCallIntent(!modeSearchOrCall);
+                    getSearchOrCallIntent(!modeSearchOrCall);
                     setModeSearch(!modeSearchOrCall);
                     setButtonImage(!modeSearchOrCall, cancelButton);
-                    startActivity(i);
+                    //startActivity(i);
             }
         });
 
@@ -304,6 +339,16 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
                         new Intent(getApplicationContext(), CallDestinationActivity.class),
                         PendingIntent.FLAG_UPDATE_CURRENT));
         return(b.build());
+    }
+
+    private boolean hasLocationPermission() {
+        int result = ContextCompat.checkSelfPermission(this, LOCATION_PERMISSIONS[0]);
+        return result == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private Location findLocation() {
+        String locationProvider = LocationManager.GPS_PROVIDER;
+        return mLocationManager.getLastKnownLocation(locationProvider);
     }
 
 }

@@ -6,14 +6,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -24,7 +22,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 
@@ -78,34 +75,40 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.fragment_settings_call_destination);
 
-        mLocationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
-
-        Intent serviceBindingIntent = new Intent(this, OverlayShowingService.class);
-        bindService(serviceBindingIntent, mConnection, Context.BIND_AUTO_CREATE);
-
         //mGoogleApiClient = new GoogleApiClient.Builder(this)
         //        .addApi(Places.GEO_DATA_API)
         //        .addApi(Places.PLACE_DETECTION_API)
         //        .enableAutoManage(this, this)
         //        .build();
-        if (hasLocationPermission()) {
-            mCurrentLocation = findLocation();
-            double locationLat = mCurrentLocation.getLatitude();
-            double locationLng = mCurrentLocation.getLongitude();
+        //if (hasLocationPermission()) {
+        //    mLocationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
+        //    mCurrentLocation = findLocation();
+        //    double locationLat = mCurrentLocation.getLatitude();
+        //    double locationLng = mCurrentLocation.getLongitude();
+
+            Intent serviceBindingIntent = new Intent(this, OverlayShowingService.class);
+            bindService(serviceBindingIntent, mConnection, Context.BIND_AUTO_CREATE);
+
+            //LatLngBounds bounds = new LatLngBounds(
+            //        new LatLng(locationLat, locationLng),
+            //        new LatLng(locationLat, locationLng));
 
             try {
-                Intent placePickingIntent =
-                        new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
-                                .setBoundsBias(new LatLngBounds(
-                                        new LatLng(locationLat, locationLng),
-                                        new LatLng(locationLat, locationLng)))
-                                .build(this);
-                placePickingIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                Bundle b = getIntent().getExtras();
+                LatLngBounds bounds = (LatLngBounds)b.get("LOCATION");
+                if (b != null) {
+                    Intent placePickingIntent =
+                            new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
+                                    .setBoundsBias(bounds)
+                                    .build(this);
+                    placePickingIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                    startActivityForResult(placePickingIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
+                }
+
                 //| Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 //| Intent.FLAG_ACTIVITY_NEW_TASK
                 //| Intent.FLAG_ACTIVITY_NO_HISTORY);
                 //placePickingIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivityForResult(placePickingIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
             } catch (GooglePlayServicesRepairableException e) {
                 Log.e(TAG, "ERROR: " + e);
                 // Handle the error
@@ -113,7 +116,6 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
                 Log.e(TAG, "ERROR: " + e);
                 // Handle the error
             }
-        }
     }
 
     @Override
@@ -151,22 +153,21 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(this, data);
 
-                String phoneNumber = place.getPhoneNumber().toString();
                 String address = place.getAddress().toString();
-
-                if (mBound) {
-                    // notify OverlayShowingService that we are about to start getting directions
-                    // change overlay from search to phone call
-                    mService.setDestinationPhoneNumber(phoneNumber);
-                    mService.setModeSearch(false);
-                }
                 Uri navigateToDestinationUri = Uri.parse("google.navigation:q=" + address);
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, navigateToDestinationUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
                 mapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                //mapIntent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
-                finish();
                 startActivity(mapIntent);
+
+                if (mBound) {
+                    // notify OverlayShowingService that we are about to start getting directions
+                    // change overlay from search to phone call
+                    String phoneNumber = place.getPhoneNumber().toString();
+                    mService.setDestinationPhoneNumber(phoneNumber);
+                    mService.setModeSearch(false);
+                }
+                finish();
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
                 // Handle the error
@@ -197,23 +198,23 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
             case REQUEST_LOCATION_PERMISSIONS:
-                if (hasLocationPermission()) {
-                    mCurrentLocation = findLocation();
-                }
+                //if (hasLocationPermission()) {
+                //    mCurrentLocation = findLocation();
+               // }
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 
-    private boolean hasLocationPermission() {
-        int result = ContextCompat.checkSelfPermission(this, LOCATION_PERMISSIONS[0]);
-        return result == PackageManager.PERMISSION_GRANTED;
-    }
+    //private boolean hasLocationPermission() {
+    //    int result = ContextCompat.checkSelfPermission(this, LOCATION_PERMISSIONS[0]);
+    //    return result == PackageManager.PERMISSION_GRANTED;
+   // }
 
-    private Location findLocation() {
-        String locationProvider = LocationManager.GPS_PROVIDER;
-        return mLocationManager.getLastKnownLocation(locationProvider);
-    }
+    //private Location findLocation() {
+    //    String locationProvider = LocationManager.GPS_PROVIDER;
+    //    return mLocationManager.getLastKnownLocation(locationProvider);
+   // }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
