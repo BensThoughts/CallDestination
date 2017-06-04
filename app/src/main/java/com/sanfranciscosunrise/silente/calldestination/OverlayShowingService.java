@@ -121,11 +121,9 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
                     }
                     mClicked = true;
                 } else {
-                    //Intent i = getSearchOrCallIntent(modeSearchOrCall);
                     removeCancelButton();
                     mClicked = false;
-                    //startActivity(i);
-                    getSearchOrCallIntent(modeSearchOrCall);
+                    startSearchOrCall(modeSearchOrCall);
                 }
             }
         });
@@ -164,7 +162,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
          ****************/
     }
 
-    private void getSearchOrCallIntent(boolean isSearchOrCall) {
+    private void startSearchOrCall(boolean isSearchOrCall) {
         if (isSearchOrCall) {
             Intent searchIntent = new Intent(getApplicationContext(), PlacePickerActivity.class);
             searchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
@@ -172,19 +170,13 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             if (hasLocationPermission()) {
                 searchIntent.putExtra("LOCATION", mCurrentLatLngBounds);
             }
-
-            //searchIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-            //return searchIntent;
             startActivity(searchIntent);
         } else if (mDestinationPhoneNumber != null){
             Intent phoneCallIntent=new Intent(Intent.ACTION_DIAL,
                     Uri.fromParts("tel",mDestinationPhoneNumber,null));
             phoneCallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            //return phoneCallIntent;
             startActivity(phoneCallIntent);
         }
-
-        //return null;  // NEED to FIX< COULD CAUSE CRASH
     }
 
     @Override
@@ -293,13 +285,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    //Intent i = getSearchOrCallIntent(!modeSearchOrCall);
 
                     setModeSearch(!modeSearchOrCall);
                     setButtonImage(!modeSearchOrCall, cancelButton);
                     mClicked = false;
-                    getSearchOrCallIntent(modeSearchOrCall);
-                    //startActivity(i);
+                    startSearchOrCall(modeSearchOrCall);
             }
         });
 
