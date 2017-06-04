@@ -294,9 +294,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             @Override
             public void onClick(View view) {
                     //Intent i = getSearchOrCallIntent(!modeSearchOrCall);
-                    getSearchOrCallIntent(!modeSearchOrCall);
+
                     setModeSearch(!modeSearchOrCall);
                     setButtonImage(!modeSearchOrCall, cancelButton);
+                    mClicked = false;
+                    getSearchOrCallIntent(modeSearchOrCall);
                     //startActivity(i);
             }
         });

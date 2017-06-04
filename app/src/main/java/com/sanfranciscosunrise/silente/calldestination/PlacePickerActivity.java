@@ -50,6 +50,7 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
 
     private OverlayShowingService mService;
     private boolean mBound = false;
+    private Intent mServiceBindingIntent;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -73,6 +74,10 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "onCreate()");
+        mServiceBindingIntent = new Intent(this, OverlayShowingService.class);
+        bindService(mServiceBindingIntent, mConnection, Context.BIND_AUTO_CREATE);
+
         //setContentView(R.layout.fragment_settings_call_destination);
 
         //mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -86,8 +91,6 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
         //    double locationLat = mCurrentLocation.getLatitude();
         //    double locationLng = mCurrentLocation.getLongitude();
 
-            Intent serviceBindingIntent = new Intent(this, OverlayShowingService.class);
-            bindService(serviceBindingIntent, mConnection, Context.BIND_AUTO_CREATE);
 
             //LatLngBounds bounds = new LatLngBounds(
             //        new LatLng(locationLat, locationLng),
@@ -158,7 +161,9 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, navigateToDestinationUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
                 mapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(mapIntent);
+
+
+
 
                 if (mBound) {
                     // notify OverlayShowingService that we are about to start getting directions
@@ -168,12 +173,15 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
                     mService.setModeSearch(false);
                 }
                 finish();
+                startActivity(mapIntent);
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
                 // Handle the error
                 Log.i(TAG, status.getStatusMessage());
+                finish();
             } else if (resultCode == RESULT_CANCELED) {
                 // The user canceled the operation
+                finish();
             }
         }
     }
