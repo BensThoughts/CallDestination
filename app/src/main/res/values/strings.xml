@@ -6,4 +6,7 @@
     <string name="button_toggle_service_start">Start</string>
     <string name="button_toggle_service_stop">Stop</string>
     <string name="overlay_service_proccess_name">callDestinationService</string>
+    <string name="notification_content_title">CallDestination Started</string>
+    <string name="notification_content_text">BAAS (Button As A Service) running.</string>
+    <string name="notification_ticker">CallDestination BAAS Enabled</string>
 </resources>

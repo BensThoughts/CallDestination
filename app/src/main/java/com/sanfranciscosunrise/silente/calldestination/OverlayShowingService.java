@@ -323,10 +323,10 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         NotificationCompat.Builder b=new NotificationCompat.Builder(this);
 
         b.setOngoing(false)
-                .setContentTitle("CallDestination Started")
-                .setContentText("You have enabled the CallDestination BAAS (Button As A Service).")
+                .setContentTitle(getString(R.string.notification_content_title))
+                .setContentText(getString(R.string.notification_content_text))
                 .setSmallIcon(android.R.drawable.stat_sys_speakerphone)
-                .setTicker("CallDestination BAAS Enabled")
+                .setTicker(getString(R.string.notification_ticker))
                 .setContentIntent(PendingIntent.getActivity(this, 5544,
                         new Intent(getApplicationContext(), CallDestinationActivity.class),
                         PendingIntent.FLAG_UPDATE_CURRENT));
