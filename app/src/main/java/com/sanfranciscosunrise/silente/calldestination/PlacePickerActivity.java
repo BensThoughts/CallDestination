@@ -10,7 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
+//import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -45,12 +45,10 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
 
     private OverlayShowingService mService;
     private boolean mBound = false;
-    private Intent mServiceBindingIntent;
-
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.i(TAG, "onServiceConnected");
+            //Log.i(TAG, "onServiceConnected");
             OverlayShowingService.LocalBinder binder = (OverlayShowingService.LocalBinder)service;
             mService = binder.getService();
             mBound = true;
@@ -59,20 +57,18 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mBound = false;
-            //finish();
         }
     };
-
-
 
     //private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i(TAG, "onCreate()");
-        mServiceBindingIntent = new Intent(this, OverlayShowingService.class);
-        bindService(mServiceBindingIntent, mConnection, Context.BIND_AUTO_CREATE);
+        //Log.i(TAG, "onCreate()");
+
+        Intent serviceBindingIntent = new Intent(this, OverlayShowingService.class);
+        bindService(serviceBindingIntent, mConnection, Context.BIND_AUTO_CREATE);
 
         //mGoogleApiClient = new GoogleApiClient.Builder(this)
         //        .addApi(Places.GEO_DATA_API)
@@ -91,14 +87,11 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
                     placePickingIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
                     startActivityForResult(placePickingIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
                 }
-                //| Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                //| Intent.FLAG_ACTIVITY_NEW_TASK
-                //| Intent.FLAG_ACTIVITY_NO_HISTORY);
             } catch (GooglePlayServicesRepairableException e) {
-                Log.e(TAG, "ERROR: " + e);
+                //Log.e(TAG, "ERROR: " + e);
                 // Handle the error
             } catch (GooglePlayServicesNotAvailableException e) {
-                Log.e(TAG, "ERROR: " + e);
+                //Log.e(TAG, "ERROR: " + e);
                 // Handle the error
             }
     }
@@ -157,13 +150,12 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
                 // Handle the error
-                Log.i(TAG, status.getStatusMessage());
+                //Log.i(TAG, status.getStatusMessage());
             } else if (resultCode == RESULT_CANCELED) {
                 // The user canceled the operation
             }
         }
         finish();
-
     }
 
     @Override

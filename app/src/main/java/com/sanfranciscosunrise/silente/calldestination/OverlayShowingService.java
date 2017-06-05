@@ -16,7 +16,7 @@ import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
+//import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -66,9 +66,9 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     private boolean modeSearchOrCall = true; // true == search mode, false == call mode
     private boolean mClicked;
-    private String mDestinationPhoneNumber;
 
-    private LocationManager mLocationManager;
+    private String mDestinationPhoneNumber;
+    static private LocationManager mLocationManager;
     private LatLngBounds mCurrentLatLngBounds;
 
     public class LocalBinder extends Binder {
@@ -117,7 +117,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
                         mCurrentLatLngBounds = new LatLngBounds(
                                 new LatLng(locationLat, locationLng),
                                 new LatLng(locationLat, locationLng));
-                        Log.i(TAG, "Current Location: " + mCurrentLatLngBounds.toString());
+                        //Log.i(TAG, "Current Location: " + mCurrentLatLngBounds.toString());
                     }
                     mClicked = true;
                 } else {
@@ -164,7 +164,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     private void startSearchOrCall(boolean isSearchOrCall) {
         if (isSearchOrCall) {
-            Intent searchIntent = new Intent(getApplicationContext(), PlacePickerActivity.class);
+            final Intent searchIntent = new Intent(getApplicationContext(), PlacePickerActivity.class);
             searchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             if (hasLocationPermission()) {
@@ -172,7 +172,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             }
             startActivity(searchIntent);
         } else if (mDestinationPhoneNumber != null){
-            Intent phoneCallIntent=new Intent(Intent.ACTION_DIAL,
+            final Intent phoneCallIntent=new Intent(Intent.ACTION_DIAL,
                     Uri.fromParts("tel",mDestinationPhoneNumber,null));
             phoneCallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(phoneCallIntent);
@@ -221,11 +221,10 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             float x = event.getRawX();
             float y = event.getRawY();
 
-            // Both buttons share the same LayoutParams because they are
-            // placed on screen identically in every way possible, other
-            // then the cancel button is further to the right by exactly
-            // the width of one button
-            WindowManager.LayoutParams params = (WindowManager.LayoutParams)overlayButton.getLayoutParams();
+            // Both buttons share the same LayoutParams other then the cancel button
+            // is further to the right by exactly the width of one button
+            WindowManager.LayoutParams params =
+                    (WindowManager.LayoutParams)overlayButton.getLayoutParams();
 
             int newX = (int) (offsetX + x);
             int newY = (int) (offsetY + y);
@@ -239,9 +238,8 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
             wm.updateViewLayout(overlayButton, params);
 
-            // and here cancelButton uses overlayButton's LayoutParams
-            // and then puts them back to where they were when done
-            // with them.
+            // cancelButton uses overlayButton's LayoutParam and then
+            // puts them back to where they were when done with them.
             if (cancelButton != null) {
                 params.x = params.x + overlayButton.getWidth();
                 wm.updateViewLayout(cancelButton, params);
@@ -285,7 +283,6 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                     setModeSearch(!modeSearchOrCall);
                     setButtonImage(!modeSearchOrCall, cancelButton);
                     mClicked = false;

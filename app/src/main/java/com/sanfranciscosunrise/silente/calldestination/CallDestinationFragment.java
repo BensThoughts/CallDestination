@@ -22,8 +22,8 @@ import android.widget.Button;
 public class CallDestinationFragment extends Fragment {
     private static final String TAG = "CallDestinationFragment";
 
-    private Button mButton;
-    private boolean mIsServiceOn = false;
+    private static Button mButton;
+    private static boolean mIsServiceOn = false;
 
     public static CallDestinationFragment newInstance() {
         return new CallDestinationFragment();
