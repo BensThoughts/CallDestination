@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import java.util.UUID;
+
 /**
  * Created by Blu-J on 5/31/17.
  * This is the main fragment that is used to start and stop the BAAS (Button as a service).
@@ -23,7 +25,7 @@ public class CallDestinationFragment extends Fragment {
     private static final String TAG = "CallDestinationFragment";
 
     private static Button mButton;
-    private static boolean mIsServiceOn = false;
+    private static boolean mIsServiceOn;
 
     public static CallDestinationFragment newInstance() {
         return new CallDestinationFragment();

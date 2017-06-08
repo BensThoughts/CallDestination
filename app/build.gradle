@@ -28,4 +28,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.google.android.gms:play-services-places:10.2.6'
     compile 'com.google.android.gms:play-services-location:10.2.6'
+    compile 'com.google.firebase:firebase-core:10.2.6'
+    compile 'com.google.firebase:firebase-database:10.2.6'
 }
+apply plugin: 'com.google.gms.google-services'

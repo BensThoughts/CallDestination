@@ -3,6 +3,8 @@ package com.sanfranciscosunrise.silente.calldestination;
 import android.content.Context;
 import android.preference.PreferenceManager;
 
+import java.util.UUID;
+
 /**
  * Created by Blu-J on 5/31/17.
  */
@@ -11,6 +13,9 @@ public class QueryPreferences {
     private static final String PREF_IS_SERVICE_SEARCH = "isServiceSearch";
     private static final String PREF_IS_SERVICE_ON = "isServiceOn";
     private static final String PREF_LAST_KNOWN_PHONE_NUMBER = "lastKnownPhoneNumber";
+    private static final String PREF_UUID_LEAST_SIG_BITS = "UUIDLeastSigBits";
+    private static final String PREF_UUID_MOST_SIG_BITS = "UUIDMostSigBits";
+    private static final String PREF_MY_ACCOUNT = "myAccount";
 
     public static boolean isServiceOn(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context)
@@ -47,4 +52,21 @@ public class QueryPreferences {
                 .putString(PREF_LAST_KNOWN_PHONE_NUMBER, lastKnownPhoneNumber)
                 .apply();
     }
+
+    public static void setPrefUUID(Context context, UUID newUUID) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+                .edit()
+                .putLong(PREF_UUID_MOST_SIG_BITS, newUUID.getMostSignificantBits())
+                .putLong(PREF_UUID_LEAST_SIG_BITS, newUUID.getLeastSignificantBits())
+                .apply();
+    }
+
+    public static UUID getPrefUUID(Context context) {
+        long UuidMostSigBits = PreferenceManager.getDefaultSharedPreferences(context)
+                .getLong(PREF_UUID_MOST_SIG_BITS, 0);
+        long UuidLeastSigBits = PreferenceManager.getDefaultSharedPreferences(context)
+                .getLong(PREF_UUID_LEAST_SIG_BITS, 0);
+        return new UUID(UuidMostSigBits, UuidLeastSigBits);
+    }
+
 }

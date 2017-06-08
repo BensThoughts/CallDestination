@@ -16,7 +16,7 @@ import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
-//import android.util.Log;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,6 +25,14 @@ import android.widget.ImageButton;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Blu-J on 5/28/17.
@@ -67,9 +75,17 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     private boolean modeSearchOrCall = true; // true == search mode, false == call mode
     private boolean mClicked;
 
+    private static UUID mUuid;
+
+
     private String mDestinationPhoneNumber;
     static private LocationManager mLocationManager;
     private LatLngBounds mCurrentLatLngBounds;
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
+
+    private DatabaseReference mRef;
+
 
     public class LocalBinder extends Binder {
         OverlayShowingService getService() {
@@ -90,6 +106,16 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     public void onCreate() {
         super.onCreate();
         startForeground(3499, buildNotification());
+
+        mUuid = QueryPreferences.getPrefUUID(getApplicationContext());
+        if (mUuid == new UUID(0,0)) {
+            mUuid = UUID.randomUUID();
+            QueryPreferences.setPrefUUID(getApplicationContext(), mUuid);
+        }
+
+        mRef = FirebaseDatabase.getInstance().getReference("current_location/" + mUuid.toString());
+
+
 
         if (hasLocationPermission()) {
             mLocationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
@@ -112,12 +138,21 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
                 if (!mClicked) {
                     createCancelButton();
                     if (hasLocationPermission()) {
-                        double locationLat = findLocation().getLatitude();
-                        double locationLng = findLocation().getLongitude();
+                        Location location = findLocation();
+                        LatLng locationLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                         mCurrentLatLngBounds = new LatLngBounds(
-                                new LatLng(locationLat, locationLng),
-                                new LatLng(locationLat, locationLng));
-                        //Log.i(TAG, "Current Location: " + mCurrentLatLngBounds.toString());
+                                locationLatLng,
+                                locationLatLng);
+                        Log.i(TAG, "Current Location: " + mCurrentLatLngBounds.toString());
+
+                        Date currentTime = new Date();
+                        List<String> currentLocationAndTime = new ArrayList<>();
+                        currentLocationAndTime.add("" + currentTime.getTime());
+                        mSimpleDateFormat.format(currentTime);
+                        currentLocationAndTime.add("" + currentTime.toString());
+                        currentLocationAndTime.add("" + locationLatLng.latitude);
+                        currentLocationAndTime.add("" + locationLatLng.longitude);
+                        mRef.push().setValue(currentLocationAndTime);
                     }
                     mClicked = true;
                 } else {
@@ -172,6 +207,18 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             }
             startActivity(searchIntent);
         } else if (mDestinationPhoneNumber != null){
+
+            Date currentTime = new Date();
+            List<String> madeCall = new ArrayList<>();
+            if (mUuid != null) {
+                madeCall.add(mUuid.toString());
+            }
+            madeCall.add("" + currentTime.getTime());
+            mSimpleDateFormat.format(currentTime);
+            madeCall.add(currentTime.toString());
+            madeCall.add(mDestinationPhoneNumber);
+            mRef.getRoot().child("phone_call_attempt/" + mUuid.toString()).push().setValue(madeCall);
+
             final Intent phoneCallIntent=new Intent(Intent.ACTION_DIAL,
                     Uri.fromParts("tel",mDestinationPhoneNumber,null));
             phoneCallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -195,6 +242,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             topLeftView = null;
         }
         removeCancelButton();
+        mCurrentLatLngBounds = null;
     }
 
 
