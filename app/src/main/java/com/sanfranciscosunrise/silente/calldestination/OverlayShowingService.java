@@ -54,15 +54,21 @@ import java.util.UUID;
 public class OverlayShowingService extends Service implements View.OnTouchListener {
     private static final String TAG = "OverlayShowingService";
 
+    private static final int FOREGROUND_SERVICE_ID = 3499;
     private static final String[] LOCATION_PERMISSIONS = new String[]{
             android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.ACCESS_COARSE_LOCATION
     };
+    private static final UUID EMPTY_UUID = new UUID(0,0);
+    private static final SimpleDateFormat
+            mSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-    private final IBinder mBinder = new LocalBinder();
+    private static UUID mUUID; // This is static to the whole application context. Used
+                               // to identify individual phones/users in the Firebase database
+
+    private String mDestinationPhoneNumber;
 
     private View topLeftView;
-
     private ImageButton overlayButton;
     private ImageButton cancelButton;
     private float offsetX;
@@ -73,20 +79,14 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     private WindowManager wm;
 
     private boolean modeSearchOrCall = true; // true == search mode, false == call mode
-    private boolean mClicked;
+    private boolean mClicked; // track is the button has been clicked once or twice
 
-    private static UUID mUuid;
-
-
-    private String mDestinationPhoneNumber;
-    static private LocationManager mLocationManager;
-    private LatLngBounds mCurrentLatLngBounds;
-    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
+    private static LocationManager mLocationManager;
+    private LatLng mCurrentLatLng;
 
     private DatabaseReference mRef;
 
-
+    private final IBinder mBinder = new LocalBinder();
     public class LocalBinder extends Binder {
         OverlayShowingService getService() {
             return OverlayShowingService.this;
@@ -105,17 +105,15 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
     @Override
     public void onCreate() {
         super.onCreate();
-        startForeground(3499, buildNotification());
+        startForeground(FOREGROUND_SERVICE_ID, buildNotification());
 
-        mUuid = QueryPreferences.getPrefUUID(getApplicationContext());
-        if (mUuid == new UUID(0,0)) {
-            mUuid = UUID.randomUUID();
-            QueryPreferences.setPrefUUID(getApplicationContext(), mUuid);
+        mUUID = QueryPreferences.getPrefUUID(getApplicationContext());
+        if (mUUID.equals(EMPTY_UUID)) {
+            mUUID = UUID.randomUUID();
+            QueryPreferences.setPrefUUID(getApplicationContext(), mUUID);
         }
 
-        mRef = FirebaseDatabase.getInstance().getReference("current_location/" + mUuid.toString());
-
-
+        mRef = FirebaseDatabase.getInstance().getReference();
 
         if (hasLocationPermission()) {
             mLocationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
@@ -138,21 +136,11 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
                 if (!mClicked) {
                     createCancelButton();
                     if (hasLocationPermission()) {
-                        Location location = findLocation();
-                        LatLng locationLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        mCurrentLatLngBounds = new LatLngBounds(
-                                locationLatLng,
-                                locationLatLng);
-                        Log.i(TAG, "Current Location: " + mCurrentLatLngBounds.toString());
-
-                        Date currentTime = new Date();
-                        List<String> currentLocationAndTime = new ArrayList<>();
-                        currentLocationAndTime.add("" + currentTime.getTime());
-                        mSimpleDateFormat.format(currentTime);
-                        currentLocationAndTime.add("" + currentTime.toString());
-                        currentLocationAndTime.add("" + locationLatLng.latitude);
-                        currentLocationAndTime.add("" + locationLatLng.longitude);
-                        mRef.push().setValue(currentLocationAndTime);
+                        mCurrentLatLng = findLocation();
+                        long currentTime = new Date().getTime();
+                        mRef.getRoot()
+                                .child("current_position/" + mUUID.toString() + "/" + currentTime)
+                                .setValue(mCurrentLatLng);
                     }
                     mClicked = true;
                 } else {
@@ -178,9 +166,9 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
         /****************
          * I'm uncertain if we need to add topLeftView actually to the screen
-         * or even really what it is for.  I suspect for screens in which the top left is
-         * not 0,0?? is topLeftView needed at all? can we just set to [0,0] in the
-         * onTouchListener, which is the only place this is used at all.
+         * or even really what it is for at all.  I suspect for screens in which
+         * the top left is not 0,0?? can we just set to [0,0] in the onTouchListener,
+         * which is the only place this is used.
          *
          * WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
          *        WindowManager.LayoutParams.WRAP_CONTENT,
@@ -203,21 +191,18 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             searchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             if (hasLocationPermission()) {
-                searchIntent.putExtra("LOCATION", mCurrentLatLngBounds);
+                mCurrentLatLng = findLocation();
+                LatLngBounds currentLatLngBounds = new LatLngBounds(mCurrentLatLng,
+                        mCurrentLatLng);
+                searchIntent.putExtra("LOCATION", currentLatLngBounds);
             }
             startActivity(searchIntent);
         } else if (mDestinationPhoneNumber != null){
 
-            Date currentTime = new Date();
-            List<String> madeCall = new ArrayList<>();
-            if (mUuid != null) {
-                madeCall.add(mUuid.toString());
-            }
-            madeCall.add("" + currentTime.getTime());
-            mSimpleDateFormat.format(currentTime);
-            madeCall.add(currentTime.toString());
-            madeCall.add(mDestinationPhoneNumber);
-            mRef.getRoot().child("phone_call_attempt/" + mUuid.toString()).push().setValue(madeCall);
+            long currentTime = new Date().getTime();
+            mRef.getRoot()
+                    .child("phone_call_attempt/" + mUUID.toString() + "/" + currentTime)
+                    .setValue(mDestinationPhoneNumber);
 
             final Intent phoneCallIntent=new Intent(Intent.ACTION_DIAL,
                     Uri.fromParts("tel",mDestinationPhoneNumber,null));
@@ -242,7 +227,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             topLeftView = null;
         }
         removeCancelButton();
-        mCurrentLatLngBounds = null;
+        mCurrentLatLng = null;
     }
 
 
@@ -383,9 +368,10 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         return result == PackageManager.PERMISSION_GRANTED;
     }
 
-    private Location findLocation() {
+    private LatLng findLocation() {
         String locationProvider = LocationManager.GPS_PROVIDER;
-        return mLocationManager.getLastKnownLocation(locationProvider);
+        Location lastKnown = mLocationManager.getLastKnownLocation(locationProvider);
+        return new LatLng(lastKnown.getLatitude(), lastKnown.getLongitude());
     }
 
 }

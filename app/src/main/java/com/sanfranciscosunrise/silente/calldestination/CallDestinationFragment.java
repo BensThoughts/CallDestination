@@ -8,8 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import java.util.UUID;
-
 /**
  * Created by Blu-J on 5/31/17.
  * This is the main fragment that is used to start and stop the BAAS (Button as a service).
@@ -42,7 +40,8 @@ public class CallDestinationFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_settings_call_destination, container, false);
 
         mButton = (Button)v.findViewById(R.id.toggle_service);
-        setButtonText(mIsServiceOn);
+        setServiceOn(mIsServiceOn);
+        //setButtonText(mIsServiceOn);
         mButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 setServiceOn(!mIsServiceOn);
@@ -54,16 +53,15 @@ public class CallDestinationFragment extends Fragment {
 
     public void setServiceOn(boolean isOn) {
         mIsServiceOn = isOn;
-        //Intent svc = new Intent(getActivity(), OverlayShowingService.class);
         Intent svc = OverlayShowingService.newIntent(getActivity());
-        if (mIsServiceOn) {
+        if (isOn) {
+            QueryPreferences.setServiceSearch(getActivity(), true);
             getActivity().startService(svc);
         } else {
             getActivity().stopService(svc);
         }
-        QueryPreferences.setServiceOn(getActivity(), mIsServiceOn);
-        QueryPreferences.setServiceSearch(getActivity(), mIsServiceOn);
-        setButtonText(mIsServiceOn);
+        QueryPreferences.setServiceOn(getActivity(), isOn);
+        setButtonText(isOn);
     }
 
     public void setButtonText(boolean isOn) {

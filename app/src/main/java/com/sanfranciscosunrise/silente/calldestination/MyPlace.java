@@ -13,7 +13,6 @@ public class MyPlace {
     private String mAddress;
     private String mTel;
     private LatLng mLatLng;
-    private Date timeOfCreation;
 
     public String getAddress() {
         return mAddress;
@@ -37,14 +36,6 @@ public class MyPlace {
 
     public void setLatLng(LatLng latLng) {
         mLatLng = latLng;
-    }
-
-    public Date getTimeOfCreation() {
-        return timeOfCreation;
-    }
-
-    public void setTimeOfCreation(Date timeOfCreation) {
-        this.timeOfCreation = timeOfCreation;
     }
 
     public String getName() {

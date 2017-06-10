@@ -20,16 +20,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.sql.Time;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 
@@ -47,13 +42,10 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
 
     private static final int REQUEST_ERROR = 0;
     private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
-    private static final String[] LOCATION_PERMISSIONS = new String[]{
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.ACCESS_COARSE_LOCATION
-    };
-    private static final int REQUEST_LOCATION_PERMISSIONS = 0;
 
-    private DatabaseReference mRefPlace;
+    private static UUID mUUID;
+
+    private DatabaseReference mRef;
 
     private OverlayShowingService mService;
     private boolean mBound = false;
@@ -78,14 +70,10 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        UUID myId = QueryPreferences.getPrefUUID(getApplicationContext());
-        if (myId != (new UUID(0,0))) {
-            if (myId != null) {
-                mRefPlace = FirebaseDatabase.getInstance().getReference("place_lookup/" + myId.toString());
-            }
+        mUUID = QueryPreferences.getPrefUUID(getApplicationContext());
+        if (mUUID != (new UUID(0,0))) {
+                mRef = FirebaseDatabase.getInstance().getReference("place_lookup/" + mUUID.toString());
         }
-
-        //Log.i(TAG, "onCreate()");
 
         Intent serviceBindingIntent = new Intent(this, OverlayShowingService.class);
         bindService(serviceBindingIntent, mConnection, Context.BIND_AUTO_CREATE);
@@ -153,19 +141,18 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
                 Place place = PlaceAutocomplete.getPlace(this, data);
                 String address = place.getAddress().toString();
 
-                if (mRefPlace != null) {
+                if (mRef != null) {
                     MyPlace myPlace = new MyPlace();
                     myPlace.setName(place.getName().toString());
-                    myPlace.setAddress(place.getAddress().toString());
+                    myPlace.setAddress(address);
                     myPlace.setTel(place.getPhoneNumber().toString());
-                    myPlace.setTimeOfCreation(new Date());
+                    long currentTime = new Date().getTime();
                     myPlace.setLatLng(place.getLatLng());
 
-                    mRefPlace.push().setValue(myPlace);
+                    mRef.child("" + currentTime).setValue(myPlace);
                 }
 
                 Uri navigateToDestinationUri = Uri.parse("google.navigation:q=" + address);
-
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, navigateToDestinationUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
                 mapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -204,16 +191,6 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
             mBound = false;
         }
         //mGoogleApiClient = null;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_LOCATION_PERMISSIONS:
-
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
     }
 
     @Override

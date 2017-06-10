@@ -15,7 +15,6 @@ public class QueryPreferences {
     private static final String PREF_LAST_KNOWN_PHONE_NUMBER = "lastKnownPhoneNumber";
     private static final String PREF_UUID_LEAST_SIG_BITS = "UUIDLeastSigBits";
     private static final String PREF_UUID_MOST_SIG_BITS = "UUIDMostSigBits";
-    private static final String PREF_MY_ACCOUNT = "myAccount";
 
     public static boolean isServiceOn(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context)
@@ -62,11 +61,11 @@ public class QueryPreferences {
     }
 
     public static UUID getPrefUUID(Context context) {
-        long UuidMostSigBits = PreferenceManager.getDefaultSharedPreferences(context)
+        long UUIDMostSigBits = PreferenceManager.getDefaultSharedPreferences(context)
                 .getLong(PREF_UUID_MOST_SIG_BITS, 0);
-        long UuidLeastSigBits = PreferenceManager.getDefaultSharedPreferences(context)
+        long UUIDLeastSigBits = PreferenceManager.getDefaultSharedPreferences(context)
                 .getLong(PREF_UUID_LEAST_SIG_BITS, 0);
-        return new UUID(UuidMostSigBits, UuidLeastSigBits);
+        return new UUID(UUIDMostSigBits, UUIDLeastSigBits);
     }
 
 }
