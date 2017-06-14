@@ -28,10 +28,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -60,8 +57,6 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             android.Manifest.permission.ACCESS_COARSE_LOCATION
     };
     private static final UUID EMPTY_UUID = new UUID(0,0);
-    private static final SimpleDateFormat
-            mSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     private static UUID mUUID; // This is static to the whole application context. Used
                                // to identify individual phones/users in the Firebase database
@@ -168,7 +163,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
          * I'm uncertain if we need to add topLeftView actually to the screen
          * or even really what it is for at all.  I suspect for screens in which
          * the top left is not 0,0?? can we just set to [0,0] in the onTouchListener,
-         * which is the only place this is used.
+         * which is the only place this is used?
          *
          * WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
          *        WindowManager.LayoutParams.WRAP_CONTENT,
