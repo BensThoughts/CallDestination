@@ -44,12 +44,11 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
     private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
 
     private static UUID mUUID;
-
     private DatabaseReference mRef;
 
-    private OverlayShowingService mService;
-    private boolean mBound = false;
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private static OverlayShowingService mService;
+    private static boolean mBound = false;
+    private static ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             //Log.i(TAG, "onServiceConnected");
@@ -84,24 +83,13 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
         //        .enableAutoManage(this, this)
         //        .build();
 
-            try {
-                Bundle b = getIntent().getExtras();
-                LatLngBounds bounds = (LatLngBounds)b.get("LOCATION");
-                if (b != null) {
-                    Intent placePickingIntent =
-                            new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
-                                    .setBoundsBias(bounds)
-                                    .build(this);
-                    placePickingIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-                    startActivityForResult(placePickingIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
-                }
-            } catch (GooglePlayServicesRepairableException e) {
-                //Log.e(TAG, "ERROR: " + e);
-                // Handle the error
-            } catch (GooglePlayServicesNotAvailableException e) {
-                //Log.e(TAG, "ERROR: " + e);
-                // Handle the error
-            }
+        Bundle b = getIntent().getExtras();
+        if (b != null) {
+            LatLngBounds bounds = (LatLngBounds)b.get("LOCATION");
+            startPlaceAutocomplete(bounds);
+        } else {
+            startPlaceAutocomplete();
+        }
     }
 
     @Override
@@ -141,6 +129,12 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
                 Place place = PlaceAutocomplete.getPlace(this, data);
                 String address = place.getAddress().toString();
 
+                Uri navigateToDestinationUri = Uri.parse("google.navigation:q=" + address);
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, navigateToDestinationUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                mapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(mapIntent);
+
                 if (mRef != null) {
                     MyPlace myPlace = new MyPlace();
                     myPlace.setName(place.getName().toString());
@@ -151,12 +145,6 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
 
                     mRef.child("" + currentTime).setValue(myPlace);
                 }
-
-                Uri navigateToDestinationUri = Uri.parse("google.navigation:q=" + address);
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, navigateToDestinationUri);
-                mapIntent.setPackage("com.google.android.apps.maps");
-                mapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(mapIntent);
 
                 if (mBound) {
                     // notify OverlayShowingService that we are about to start getting directions
@@ -196,6 +184,39 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
+    }
+
+    private void startPlaceAutocomplete(LatLngBounds bounds) {
+        try {
+            Intent placePickingIntent =
+                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
+                            .setBoundsBias(bounds)
+                            .build(this);
+            placePickingIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            startActivityForResult(placePickingIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
+        } catch (GooglePlayServicesRepairableException e) {
+            //Log.e(TAG, "ERROR: " + e);
+            // Handle the error
+        } catch (GooglePlayServicesNotAvailableException e) {
+            //Log.e(TAG, "ERROR: " + e);
+            // Handle the error
+        }
+    }
+
+    private void startPlaceAutocomplete() {
+        try {
+            Intent placePickingIntent =
+                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
+                            .build(this);
+            placePickingIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            startActivityForResult(placePickingIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
+        } catch (GooglePlayServicesRepairableException e) {
+            //Log.e(TAG, "ERROR: " + e);
+            // Handle the error
+        } catch (GooglePlayServicesNotAvailableException e) {
+            //Log.e(TAG, "ERROR: " + e);
+            // Handle the error
+        }
     }
 
 }
