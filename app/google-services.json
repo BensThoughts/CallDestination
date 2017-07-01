@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "330515978313",
+    "firebase_url": "https://calldestination.firebaseio.com",
+    "project_id": "calldestination",
+    "storage_bucket": "calldestination.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:330515978313:android:07185705a4fe1b42",
+        "android_client_info": {
+          "package_name": "com.sanfranciscosunrise.calldestination.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "330515978313-62hcpvmk9l0hverkqenkpaf488fj6veq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sanfranciscosunrise.calldestination.app",
+            "certificate_hash": "9363b6cd51e1364ebe1d666b94600febbaa43f0c"
+          }
+        },
+        {
+          "client_id": "330515978313-2kich6c22jds9vifpuog1bef753aukm3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBH2hlIABcJoVBGNdHbuy-CapSri6YPfJw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "330515978313-2kich6c22jds9vifpuog1bef753aukm3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
