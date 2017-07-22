@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 buildscript {
     repositories {
         maven { url 'https://maven.fabric.io/public' }
@@ -24,6 +25,19 @@ android {
         targetSdkVersion 22
         versionCode 101
         versionName "0.1.0.1"
+=======
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
+    defaultConfig {
+        applicationId "com.sanfranciscosunrise.silente.calldestination"
+        minSdkVersion 16
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -32,8 +46,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+<<<<<<< HEAD
     productFlavors {
     }
+=======
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d
 }
 
 dependencies {
@@ -42,6 +59,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
+<<<<<<< HEAD
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.google.android.gms:play-services-places:11.0.1'
     compile 'com.google.android.gms:play-services-location:11.0.1'
@@ -53,3 +71,12 @@ dependencies {
     }
 }
 apply plugin: 'com.google.gms.google-services'
+=======
+    testCompile 'junit:junit:4.12'
+    compile 'com.google.android.gms:play-services-places:10.2.6'
+    compile 'com.google.android.gms:play-services-location:10.2.6'
+    compile 'com.google.firebase:firebase-core:10.2.6'
+    compile 'com.google.firebase:firebase-database:10.2.6'
+}
+apply plugin: 'com.google.gms.google-services'
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d

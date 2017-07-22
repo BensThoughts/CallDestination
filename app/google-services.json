@@ -8,17 +8,30 @@
   "client": [
     {
       "client_info": {
+<<<<<<< HEAD
         "mobilesdk_app_id": "1:330515978313:android:07185705a4fe1b42",
         "android_client_info": {
           "package_name": "com.sanfranciscosunrise.calldestination.app"
+=======
+        "mobilesdk_app_id": "1:330515978313:android:248ae5f59f8c561e",
+        "android_client_info": {
+          "package_name": "com.sanfranciscosunrise.silente.calldestination"
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d
         }
       },
       "oauth_client": [
         {
+<<<<<<< HEAD
           "client_id": "330515978313-62hcpvmk9l0hverkqenkpaf488fj6veq.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.sanfranciscosunrise.calldestination.app",
+=======
+          "client_id": "330515978313-gspsv0ms0j4gl3fdmuu80streu52rrva.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sanfranciscosunrise.silente.calldestination",
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d
             "certificate_hash": "9363b6cd51e1364ebe1d666b94600febbaa43f0c"
           }
         },

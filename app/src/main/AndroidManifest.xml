@@ -1,10 +1,16 @@
+<<<<<<< HEAD
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.sanfranciscosunrise.calldestination.app">
+=======
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.sanfranciscosunrise.silente.calldestination">
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<<<<<<< HEAD
 
     <application
         android:allowBackup="true"
@@ -18,12 +24,28 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
+=======
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application android:allowBackup="true"
+                 android:icon="@android:drawable/ic_menu_compass"
+                 android:label="@string/app_name"
+                 android:supportsRtl="true"
+                 android:theme="@style/AppTheme">
+
+        <activity android:name=".CallDestinationActivity"
+                  android:label="@string/title_activity_call_destination"
+                  android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
         <activity android:name=".PlacePickerActivity"
                   android:theme="@android:style/Theme.NoDisplay"/>
+<<<<<<< HEAD
 
         <service android:name=".OverlayShowingService"
                  android:exported="false"/>
@@ -31,11 +53,22 @@
         <meta-data android:name="io.fabric.ApiKey"
                    android:value="217dfb262d030acc4c7b2ce2ce267a2dc7b7666d" />
 
+=======
+                  <!-- android:noHistory="true"/> -->
+
+        <service android:name="com.sanfranciscosunrise.silente.calldestination.OverlayShowingService"
+                 android:exported="false"/>
+
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d
         <meta-data android:name="com.google.android.geo.API_KEY"
                    android:value="AIzaSyC17067beytGa8UQpjt-oO6mCi_m4M5x7E"/>
 
     </application>
 
+<<<<<<< HEAD
     <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>
+=======
+</manifest>
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d

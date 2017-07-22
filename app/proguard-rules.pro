@@ -15,6 +15,7 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+<<<<<<< HEAD
 
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
@@ -23,3 +24,5 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+=======
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d

@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">CallDestination</string>
+<<<<<<< HEAD
     <string name="title_activity_call_destination">CallDestination: Preferences</string>
+=======
+    <string name="title_activity_call_destination">CallDestination</string>
+>>>>>>> 807d653ec53c3d8f80bbf1e575209c588d29ce2d
     <string name="overlay_button_search_mode">Search</string>
     <string name="overlay_button_call_mode">Phone Call</string>
     <string name="button_toggle_service_start">Start</string>
