@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.SearchEvent;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -139,6 +141,8 @@ public class PlacePickerActivity extends FragmentActivity implements GoogleApiCl
                 if (mRef != null) {
                     MyPlace myPlace = new MyPlace();
                     myPlace.setName(place.getName().toString());
+                    Answers.getInstance().logSearch(new SearchEvent()
+                            .putQuery(myPlace.getName()));
                     myPlace.setAddress(address);
                     myPlace.setTel(place.getPhoneNumber().toString());
                     long currentTime = new Date().getTime();

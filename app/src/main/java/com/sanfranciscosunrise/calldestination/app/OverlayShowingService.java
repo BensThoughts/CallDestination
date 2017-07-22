@@ -16,12 +16,16 @@ import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GestureDetectorCompat;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.firebase.database.DatabaseReference;
@@ -74,6 +78,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     private boolean modeSearchOrCall = true; // true == search mode, false == call mode
     private boolean mClicked; // track is the button has been clicked once or twice
+    GestureDetectorCompat mGestureDetectorCompat;
 
     private static LocationManager mLocationManager;
     private LatLng mCurrentLatLng;
@@ -107,6 +112,8 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
             QueryPreferences.setPrefUUID(getApplicationContext(), mUUID);
         }
 
+        Crashlytics.setUserIdentifier(mUUID.toString());
+
         mRef = FirebaseDatabase.getInstance().getReference();
 
         if (hasLocationPermission()) {
@@ -114,6 +121,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         }
 
         mClicked = false;
+        mGestureDetectorCompat = new GestureDetectorCompat(this, new MyGestureDetector());
 
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         modeSearchOrCall = QueryPreferences.isServiceSearch(this);
@@ -124,9 +132,13 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         overlayButton.setAlpha(0.7f);
         overlayButton.setBackgroundColor(Color.TRANSPARENT);
         overlayButton.setOnTouchListener(this);
+
+        // Soon to be removed, we now detect click with onTouch due to oversensitive screens
+        /*
         overlayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.i(TAG, "" + mClicked);
                 if (!mClicked) {
                     createCancelButton();
                     if (hasLocationPermission()) {
@@ -144,6 +156,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
                 }
             }
         });
+        */
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -163,20 +176,21 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
          * or even really what it is for at all.  I suspect for screens in which
          * the top left is not 0,0?? can we just set to [0,0] in the onTouchListener,
          * which is the only place this is used?
-         *
-         * WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
-         *        WindowManager.LayoutParams.WRAP_CONTENT,
-         *        WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-         *        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-         *        PixelFormat.TRANSLUCENT);
-         * topLeftParams.gravity = Gravity.LEFT | Gravity.TOP;
-         *
-         * topLeftParams.x = 0;
-         * topLeftParams.y = 0;
-         * topLeftParams.width = 0;
-         * topLeftParams.height = 0;
-         * wm.addView(topLeftView, topLeftParams);*
-         ****************/
+         */
+
+        WindowManager.LayoutParams topLeftParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+                        WindowManager.LayoutParams.WRAP_CONTENT,
+                        WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                 PixelFormat.TRANSLUCENT);
+
+          topLeftParams.gravity = Gravity.LEFT | Gravity.TOP;
+
+          topLeftParams.x = 0;
+          topLeftParams.y = 0;
+          topLeftParams.width = 0;
+          topLeftParams.height = 0;
+          wm.addView(topLeftView, topLeftParams);
     }
 
     private void startSearchOrCall(boolean isSearchOrCall) {
@@ -216,7 +230,7 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         stopForeground(true);
         if (overlayButton != null) {
             wm.removeView(overlayButton);
-            //wm.removeView(topLeftView);
+            wm.removeView(topLeftView);
             overlayButton = null;
             topLeftView = null;
         }
@@ -224,9 +238,30 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         mCurrentLatLng = null;
     }
 
-
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        if (mGestureDetectorCompat.onTouchEvent(event)) {
+            if (!mClicked) {
+                createCancelButton();
+                mClicked = true;
+                if (hasLocationPermission()) {
+                    mCurrentLatLng = findLocation();
+                    long currentTime = new Date().getTime();
+                    mRef.getRoot()
+                            .child("current_position/" + mUUID.toString() + "/" + currentTime)
+                            .setValue(mCurrentLatLng);
+                }
+            } else {
+                if (v.equals(cancelButton)) {
+                    setModeSearch(!modeSearchOrCall);
+                    setButtonImage(!modeSearchOrCall, cancelButton);
+                }
+                removeCancelButton();
+                startSearchOrCall(modeSearchOrCall);
+            }
+            return true;
+        }
+
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             float x = event.getRawX();
             float y = event.getRawY();
@@ -282,6 +317,15 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         return false;
     }
 
+    private class MyGestureDetector extends GestureDetector.SimpleOnGestureListener
+    {
+        @Override
+        public boolean onSingleTapUp(MotionEvent e)
+        {
+            return true;
+        }
+    }
+
     public void setDestinationPhoneNumber(String destinationPhoneNumber) {
         mDestinationPhoneNumber = destinationPhoneNumber;
         QueryPreferences.setPrefLastKnownPhoneNumber(this, mDestinationPhoneNumber);
@@ -307,15 +351,19 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
         cancelButton.setAlpha(0.7f);
         setButtonImage(!modeSearchOrCall, cancelButton);
         cancelButton.setOnTouchListener(this);
+
+        // Soon to be removed, we now detect click with onTouch due to oversensitive screens
+        /*
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                     setModeSearch(!modeSearchOrCall);
                     setButtonImage(!modeSearchOrCall, cancelButton);
-                    mClicked = false;
                     startSearchOrCall(modeSearchOrCall);
+                    mClicked = false;
             }
         });
+        */
 
         // Again both buttons share the same LayoutParams, see above
         // so we put the params back when we are done with them...
@@ -337,9 +385,9 @@ public class OverlayShowingService extends Service implements View.OnTouchListen
 
     private void removeCancelButton() {
         if (cancelButton !=null) {
-            mClicked = false;
             wm.removeView(cancelButton);
             cancelButton = null;
+            mClicked = false;
         }
     }
 
